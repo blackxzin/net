@@ -13,6 +13,8 @@ export function seed() {
     .run('Fibra 300MB', 300, 89.9);
   db.prepare('INSERT INTO clientes (nome, cpf_cnpj, telefone, plano_id, status) VALUES (?, ?, ?, ?, ?)')
     .run('Cliente Teste', '000.000.000-00', '11999999999', plano.lastInsertRowid, 'ativo');
+  db.prepare('INSERT INTO tecnicos (nome, telefone) VALUES (?, ?)')
+    .run('Tecnico Teste', '11988888888');
 
   console.log('seed: login de teste -> admin@teste.com / admin123');
 }

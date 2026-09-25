@@ -29,7 +29,8 @@ npm test
 ## Endpoints
 
 - `POST /auth/login` — `{ email, senha }` → token JWT
-- `GET/POST /usuarios` — só admin
+- `GET/POST /usuarios` — só admin (contas de acesso ao sistema: admin/atendente)
+- `GET/POST/PATCH/DELETE /tecnicos` — cadastro de técnicos de campo (não fazem login)
 - `GET/POST /planos`
 - `GET/POST/PATCH /clientes`
 - `GET/POST /ordens-servico`

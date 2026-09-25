@@ -39,6 +39,22 @@ test('fluxo completo: login, criar cliente, criar OS, agendar, bloquear transica
   const os = await osRes.json();
   assert.equal(os.status, 'aberta');
 
+  const tecnicoRes = await fetch(`${base}/tecnicos`, {
+    method: 'POST', headers: auth,
+    body: JSON.stringify({ nome: 'Joao Tecnico', telefone: '11977777777' }),
+  });
+  assert.equal(tecnicoRes.status, 201);
+  const tecnico = await tecnicoRes.json();
+
+  const agendarRes = await fetch(`${base}/ordens-servico/${os.id}/agendar`, {
+    method: 'PATCH', headers: auth,
+    body: JSON.stringify({ tecnico_id: tecnico.id, data_agendada: '2026-10-01 09:00' }),
+  });
+  assert.equal(agendarRes.status, 200);
+  const agendada = await agendarRes.json();
+  assert.equal(agendada.status, 'agendada');
+  assert.equal(agendada.tecnico_id, tecnico.id);
+
   const bloqueado = await fetch(`${base}/ordens-servico/${os.id}/status`, {
     method: 'PATCH', headers: auth,
     body: JSON.stringify({ status: 'concluida' }),

@@ -3,7 +3,15 @@ CREATE TABLE IF NOT EXISTS usuarios (
   nome TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   senha_hash TEXT NOT NULL,
-  papel TEXT NOT NULL CHECK (papel IN ('admin', 'atendente', 'tecnico')),
+  papel TEXT NOT NULL CHECK (papel IN ('admin', 'atendente')),
+  criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS tecnicos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  telefone TEXT,
+  status TEXT NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo')),
   criado_em TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -29,7 +37,7 @@ CREATE TABLE IF NOT EXISTS ordens_servico (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cliente_id INTEGER NOT NULL REFERENCES clientes(id),
   tipo TEXT NOT NULL CHECK (tipo IN ('instalacao', 'manutencao', 'cancelamento')),
-  tecnico_id INTEGER REFERENCES usuarios(id),
+  tecnico_id INTEGER REFERENCES tecnicos(id),
   status TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta', 'agendada', 'em_andamento', 'concluida', 'cancelada')),
   data_agendada TEXT,
   observacoes TEXT,

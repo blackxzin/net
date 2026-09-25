@@ -44,7 +44,7 @@ router.patch('/:id/agendar', requireAuth('admin', 'atendente'), (req, res) => {
   res.json(db.prepare('SELECT * FROM ordens_servico WHERE id = ?').get(req.params.id));
 });
 
-router.patch('/:id/status', requireAuth('admin', 'atendente', 'tecnico'), (req, res) => {
+router.patch('/:id/status', requireAuth('admin', 'atendente'), (req, res) => {
   const { status } = req.body;
   if (!status) return res.status(400).json({ erro: 'campo obrigatorio: status' });
 
