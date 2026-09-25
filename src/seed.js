@@ -28,5 +28,22 @@ export function seed() {
   db.prepare("INSERT INTO faturas (cliente_id, valor, vencimento) VALUES (?, ?, ?)")
     .run(cliente.lastInsertRowid, 89.9, dataOffset(15));
 
+  const pontos = [
+    ['POP Centro', 'pop', 'online', 8, 99.98],
+    ['POP Zona Norte', 'pop', 'online', 14, 99.5],
+    ['POP Zona Sul', 'pop', 'instavel', 45, 97.2],
+    ['CTO Rua das Flores', 'cto', 'online', 5, 99.99],
+    ['CTO Av. Brasil', 'cto', 'offline', null, 92.0],
+  ];
+  for (const [nome, tipo, status, latencia_ms, uptime_percentual] of pontos) {
+    const ponto = db.prepare(
+      'INSERT INTO pontos_rede (nome, tipo, status, latencia_ms, uptime_percentual) VALUES (?, ?, ?, ?, ?)'
+    ).run(nome, tipo, status, latencia_ms, uptime_percentual);
+    if (status !== 'online') {
+      db.prepare('INSERT INTO alertas_rede (ponto_id, mensagem) VALUES (?, ?)')
+        .run(ponto.lastInsertRowid, `${nome} esta ${status}`);
+    }
+  }
+
   console.log('seed: login de teste -> admin@teste.com / admin123');
 }

@@ -66,3 +66,23 @@ CREATE TABLE IF NOT EXISTS cobrancas_enviadas (
 
 CREATE INDEX IF NOT EXISTS faturas_cliente_idx ON faturas(cliente_id);
 CREATE INDEX IF NOT EXISTS faturas_status_idx ON faturas(status);
+
+CREATE TABLE IF NOT EXISTS pontos_rede (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  tipo TEXT NOT NULL CHECK (tipo IN ('pop', 'cto')),
+  status TEXT NOT NULL DEFAULT 'online' CHECK (status IN ('online', 'instavel', 'offline')),
+  latencia_ms INTEGER,
+  uptime_percentual NUMERIC NOT NULL DEFAULT 100,
+  atualizado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS alertas_rede (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ponto_id INTEGER NOT NULL REFERENCES pontos_rede(id),
+  mensagem TEXT NOT NULL,
+  criado_em TEXT NOT NULL DEFAULT (datetime('now')),
+  resolvido_em TEXT
+);
+
+CREATE INDEX IF NOT EXISTS alertas_rede_ponto_idx ON alertas_rede(ponto_id);

@@ -41,8 +41,16 @@ npm test
 - `PATCH /faturas/:id/pagar` — simula pagamento (sem PIX/boleto real)
 - `POST /faturas/regua/executar` — marca pendentes vencidas como `vencido` e **simula** o envio de cobrança (só grava um log, não chama WhatsApp/SMS/e-mail de verdade)
 - `GET /inadimplencia` — painel por cliente: faturas vencidas, total em aberto, dias de atraso e um score de risco (heurística simples, não é ML)
+- `GET /rede/pontos` — status dos POPs/CTOs (online/instável/offline, latência, uptime)
+- `GET /rede/alertas` — alertas abertos (`?todos=true` inclui resolvidos)
+- `PATCH /rede/alertas/:id/resolver`
+- `POST /rede/verificar` — **simula** um ciclo de monitoramento (sem SNMP/API real ainda)
 
 Todas as rotas (exceto `/auth/login`) exigem `Authorization: Bearer <token>`.
+
+## Painel de rede
+
+`GET /rede.html` (servido pelo próprio Express) — dashboard visual com login embutido, stat tiles, cards de status por ponto e lista de alertas, auto-atualiza a cada 5s. Design clean/dark, cores de status seguem a paleta acessível do skill de dataviz.
 
 ## O que é simulado (nada real ainda)
 
@@ -51,12 +59,13 @@ Este projeto ainda está em fase de protótipo pra validar se vale a pena vender
 - Cobrança não integra com PIX/boleto de verdade — "pagar" é só marcar status.
 - Régua de cobrança não envia WhatsApp/SMS/e-mail — só loga o que seria enviado.
 - Risco de churn é uma conta simples (qtd de faturas vencidas + dias de atraso), não um modelo treinado.
+- Monitoramento de rede é um sorteio de transição de status, sem SNMP/API real dos equipamentos.
 
 ## Roadmap (não implementado ainda)
 
 - Chatbot WhatsApp (2ª via, status, abertura de chamado)
 - Envio real de cobrança (WhatsApp/SMS/e-mail) e conciliação PIX/boleto
-- Dashboard de rede (uptime POP/CTO, alertas)
+- Monitoramento de rede real (SNMP/API dos equipamentos)
 - Otimização de rota dos técnicos
 - Landing pages / captação de leads
 

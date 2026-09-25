@@ -109,3 +109,35 @@ test('fluxo de cobranca: fatura vencida vira inadimplencia, regua simula envio, 
 
   server.close();
 });
+
+test('painel de rede: seed ja tem ponto instavel e offline com alertas abertos', async () => {
+  const server = app.listen(0);
+  const base = `http://localhost:${server.address().port}`;
+
+  const login = await fetch(`${base}/auth/login`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'admin@teste.com', senha: 'admin123' }),
+  });
+  const { token } = await login.json();
+  const auth = { 'content-type': 'application/json', authorization: `Bearer ${token}` };
+
+  const pontos = await (await fetch(`${base}/rede/pontos`, { headers: auth })).json();
+  assert.equal(pontos.length, 5);
+  assert.ok(pontos.some((p) => p.status === 'offline'));
+
+  const alertasAbertos = await (await fetch(`${base}/rede/alertas`, { headers: auth })).json();
+  assert.equal(alertasAbertos.length, 2);
+
+  const resolver = await fetch(`${base}/rede/alertas/${alertasAbertos[0].id}/resolver`, {
+    method: 'PATCH', headers: auth,
+  });
+  assert.equal(resolver.status, 200);
+
+  const alertasDepois = await (await fetch(`${base}/rede/alertas`, { headers: auth })).json();
+  assert.equal(alertasDepois.length, 1);
+
+  const verificar = await (await fetch(`${base}/rede/verificar`, { method: 'POST', headers: auth })).json();
+  assert.equal(verificar.pontos_verificados, 5);
+
+  server.close();
+});
