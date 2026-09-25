@@ -66,3 +66,46 @@ test('fluxo completo: login, criar cliente, criar OS, agendar, bloquear transica
 
   server.close();
 });
+
+test('fluxo de cobranca: fatura vencida vira inadimplencia, regua simula envio, pagamento fecha', async () => {
+  const server = app.listen(0);
+  const base = `http://localhost:${server.address().port}`;
+
+  const login = await fetch(`${base}/auth/login`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'admin@teste.com', senha: 'admin123' }),
+  });
+  const { token } = await login.json();
+  const auth = { 'content-type': 'application/json', authorization: `Bearer ${token}` };
+
+  const cliente = await (await fetch(`${base}/clientes`, {
+    method: 'POST', headers: auth,
+    body: JSON.stringify({ nome: 'Inadimplente Teste', cpf_cnpj: '999.999.999-99' }),
+  })).json();
+
+  const ontem = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const fatura = await (await fetch(`${base}/faturas`, {
+    method: 'POST', headers: auth,
+    body: JSON.stringify({ cliente_id: cliente.id, valor: 89.9, vencimento: ontem }),
+  })).json();
+  assert.equal(fatura.status, 'pendente');
+
+  const regua = await (await fetch(`${base}/faturas/regua/executar`, { method: 'POST', headers: auth })).json();
+  assert.equal(regua.faturas_marcadas_vencidas >= 1, true);
+  assert.equal(regua.mensagens_simuladas.some((m) => m.fatura_id === fatura.id), true);
+
+  const painel = await (await fetch(`${base}/inadimplencia`, { headers: auth })).json();
+  const linha = painel.find((p) => p.cliente_id === cliente.id);
+  assert.ok(linha);
+  assert.equal(linha.faturas_vencidas, 1);
+  assert.ok(linha.risco_churn > 0);
+
+  const pagar = await fetch(`${base}/faturas/${fatura.id}/pagar`, { method: 'PATCH', headers: auth });
+  assert.equal(pagar.status, 200);
+  assert.equal((await pagar.json()).status, 'pago');
+
+  const pagarDeNovo = await fetch(`${base}/faturas/${fatura.id}/pagar`, { method: 'PATCH', headers: auth });
+  assert.equal(pagarDeNovo.status, 409);
+
+  server.close();
+});

@@ -46,3 +46,23 @@ CREATE TABLE IF NOT EXISTS ordens_servico (
 
 CREATE INDEX IF NOT EXISTS ordens_servico_tecnico_idx ON ordens_servico(tecnico_id);
 CREATE INDEX IF NOT EXISTS ordens_servico_cliente_idx ON ordens_servico(cliente_id);
+
+CREATE TABLE IF NOT EXISTS faturas (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente_id INTEGER NOT NULL REFERENCES clientes(id),
+  valor NUMERIC NOT NULL,
+  vencimento TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente', 'pago', 'vencido', 'cancelada')),
+  pago_em TEXT,
+  criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS cobrancas_enviadas (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  fatura_id INTEGER NOT NULL REFERENCES faturas(id),
+  canal TEXT NOT NULL CHECK (canal IN ('sms', 'email', 'whatsapp')),
+  enviado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS faturas_cliente_idx ON faturas(cliente_id);
+CREATE INDEX IF NOT EXISTS faturas_status_idx ON faturas(status);
